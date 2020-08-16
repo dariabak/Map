@@ -49,7 +49,7 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
     }
 
     /**
-     * Enables the My Location layer if the fine location permission has been granted.
+     * Enables the My Location layer if the fine location permission has been granted
      */
     private fun enableMyLocation() {
         if (!::map.isInitialized) return
