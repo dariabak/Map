@@ -51,6 +51,8 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+
     }
 
 
@@ -69,6 +71,8 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
                 googleMap.addMarker(markerOptions);
             }
         }
+
+
     }
 
 
@@ -85,9 +89,16 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location ->
                     if (location != null) {
+
                         objectCon.getData(this, location.latitude, location.longitude)
                         Log.d(TAG, location.latitude.toString())
                         // get latitude , longitude and other info from this
+
+                    }
+                    map.setOnMapLongClickListener {
+                        location.latitude = it.latitude
+                        location.longitude = it.longitude
+                        objectCon.getData(this, location.latitude, location.longitude)
                     }
                 }
         } else {
