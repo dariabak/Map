@@ -1,10 +1,11 @@
 package com.example.map
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
@@ -12,12 +13,17 @@ import androidx.core.content.ContextCompat
 import com.example.map.PermissionUtils.PermissionDeniedDialog.Companion.newInstance
 import com.example.map.PermissionUtils.isPermissionGranted
 import com.example.map.PermissionUtils.requestPermission
-import com.example.map.R
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 
 /**
  * This demo shows how GMS Location can be used to check for changes to the users location.  The
@@ -25,7 +31,10 @@ import com.google.android.gms.maps.SupportMapFragment
  * Permission for [Manifest.permission.ACCESS_FINE_LOCATION] is requested at run
  * time. If the permission has not been granted, the Activity is finished with an error message.
  */
-@SuppressLint("Registered")
+
+private const val TAG = "MainActivity"
+private lateinit var fusedLocationClient: FusedLocationProviderClient
+
 class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
     OnMyLocationClickListener, OnMapReadyCallback, OnRequestPermissionsResultCallback {
     /**
@@ -34,19 +43,35 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
      */
     private var permissionDenied = false
     private lateinit var map: GoogleMap
+    private val objectCon = ObjectsConnection()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
     }
+
 
     override fun onMapReady(googleMap: GoogleMap?) {
         map = googleMap ?: return
         googleMap.setOnMyLocationButtonClickListener(this)
         googleMap.setOnMyLocationClickListener(this)
         enableMyLocation()
+
+        objectCon.onPlacesDownloadedListener = { places ->
+            for(i in 0 until places.size) {
+                val point =  LatLng(places[i].lat, places[i].lon)
+                val markerOptions = MarkerOptions()
+                markerOptions.position(point)
+                markerOptions.title(places[i].companyName)
+                googleMap.addMarker(markerOptions);
+            }
+        }
     }
+
+
 
     /**
      * Enables the My Location layer if the fine location permission has been granted
@@ -57,6 +82,14 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED) {
             map.isMyLocationEnabled = true
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        objectCon.getData(this, location.latitude, location.longitude)
+                        Log.d(TAG, location.latitude.toString())
+                        // get latitude , longitude and other info from this
+                    }
+                }
         } else {
             // Permission to access the location is missing. Show rationale and request permission
             requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
@@ -75,6 +108,7 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
 
     override fun onMyLocationClick(location: Location) {
         Toast.makeText(this, "Current location:\n$location", Toast.LENGTH_LONG).show()
+
     }
 
     // [START maps_check_location_permission_result]

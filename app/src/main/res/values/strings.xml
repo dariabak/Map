@@ -4,4 +4,5 @@
     <string name="location_permission_denied">Denied</string>
     <string name="permission_required_toast">Required</string>
     <string name="permission_rationale_location">Rationale location</string>
+    <string name="name_text">Enter a name</string>
 </resources>
