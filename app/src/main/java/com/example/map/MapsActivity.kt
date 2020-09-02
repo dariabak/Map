@@ -3,9 +3,11 @@ package com.example.map
 import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.EditText
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat.OnRequestPermissionsResultCallback
@@ -14,9 +16,7 @@ import com.example.map.PermissionUtils.PermissionDeniedDialog.Companion.newInsta
 import com.example.map.PermissionUtils.isPermissionGranted
 import com.example.map.PermissionUtils.requestPermission
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationListener
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener
 import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener
@@ -24,6 +24,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+
 
 /**
  * This demo shows how GMS Location can be used to check for changes to the users location.  The
@@ -34,6 +35,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 
 private const val TAG = "MainActivity"
 private lateinit var fusedLocationClient: FusedLocationProviderClient
+private lateinit var  searchText: EditText
 
 class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
     OnMyLocationClickListener, OnMapReadyCallback, OnRequestPermissionsResultCallback {
@@ -44,15 +46,31 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
     private var permissionDenied = false
     private lateinit var map: GoogleMap
     private val objectCon = ObjectsConnection()
+    private var enteredPlace = ""
+    private val placesList = mutableListOf<Place>()
+    var mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
+        mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        searchText = findViewById(R.id.editText)
+
+        val currentFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container)
 
 
+        searchText.setOnClickListener {
+                if (currentFragment == null) {
+                    val fragment = PlacesListFragment.newInstance(placesList)
+                    supportFragmentManager
+                        .beginTransaction()
+                        .add(R.id.fragment_container, fragment)
+                        .commit()
+                }
+        }
     }
 
 
@@ -62,13 +80,31 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
         googleMap.setOnMyLocationClickListener(this)
         enableMyLocation()
 
+        val locationButton =
+            (mapFragment!!.view!!.findViewById<View>("1".toInt())
+                .parent as View).findViewById<View>("2".toInt())
+
+        // and next place it, for exemple, on bottom right (as Google Maps app)
+
+        // and next place it, for exemple, on bottom right (as Google Maps app)
+        val rlp =
+            locationButton.layoutParams as RelativeLayout.LayoutParams
+        // position on right bottom
+        // position on right bottom
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0)
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE)
+        rlp.setMargins(0, 0, 30, 30)
+
+
         objectCon.onPlacesDownloadedListener = { places ->
             for(i in 0 until places.size) {
                 val point =  LatLng(places[i].lat, places[i].lon)
                 val markerOptions = MarkerOptions()
                 markerOptions.position(point)
-                markerOptions.title(places[i].companyName)
+                markerOptions.title(places[i].name)
                 googleMap.addMarker(markerOptions);
+                val place = places[i]
+                placesList.add(place)
             }
         }
 

@@ -11,9 +11,9 @@ import com.android.volley.toolbox.Volley
 private const val TAG = "Connection"
 
 class ObjectsConnection{
-    var onPlacesDownloadedListener: ((places: Array<Place>) -> Unit)? = null
+        var onPlacesDownloadedListener: ((places: Array<Place>) -> Unit)? = null
 
-    fun getData(context: Context, lat: Double, lon: Double){
+        fun getData(context: Context, lat: Double, lon: Double){
         val queue = Volley.newRequestQueue(context)
         val url = "https://api.tomtom.com/search/2/nearbySearch/.JSON?key=ClS4WWvEOaRLcESyJH6upMaEpPDc3plX&lat=$lat&lon=$lon"
 
