@@ -45,7 +45,7 @@ class MapsActivity : AppCompatActivity(), OnMyLocationButtonClickListener,
      */
     private var permissionDenied = false
     private lateinit var map: GoogleMap
-    private val objectCon = ObjectsConnection()
+    private val objectCon = APIConnection()
     private var enteredPlace = ""
     private val placesList = mutableListOf<Place>()
     var mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment?

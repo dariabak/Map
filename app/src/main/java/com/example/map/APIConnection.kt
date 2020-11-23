@@ -10,7 +10,7 @@ import com.android.volley.toolbox.Volley
 
 private const val TAG = "Connection"
 
-class ObjectsConnection{
+class APIConnection{
         var onPlacesDownloadedListener: ((places: Array<Place>) -> Unit)? = null
 
         fun getData(context: Context, lat: Double, lon: Double){
